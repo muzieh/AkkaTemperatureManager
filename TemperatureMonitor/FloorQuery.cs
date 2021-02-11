@@ -11,13 +11,9 @@ namespace TemperatureMonitor
         public int RequestId { get; }
         public IActorRef Requester { get; }
         public TimeSpan Timeout { get; }
+        public static int TemperatureRequestCorrelactionId { get; } = 1;
 
-        public FloorQuery()
-        {
-            
-        }
-
-        private FloorQuery(Dictionary<IActorRef,string> actorRefToSensorId, int requestId, IActorRef requester, TimeSpan timeout)
+        public FloorQuery(Dictionary<IActorRef,string> actorRefToSensorId, int requestId, IActorRef requester, TimeSpan timeout)
         {
             ActorRefToSensorId = actorRefToSensorId;
             RequestId = requestId;
@@ -27,12 +23,11 @@ namespace TemperatureMonitor
 
         protected override void PreStart()
         {
-            foreach (var actorSensor in ActorRefToSensorId)
+            foreach (var sensorActor in ActorRefToSensorId.Keys)
             {
-                var sensorActor = actorSensor.Key;
-                var sensorId = actorSensor.Value;
+                var sensorId = ActorRefToSensorId[sensorActor];
                 Context.Watch(sensorActor);
-                sensorActor.Tell(new RequestTemperature());
+                sensorActor.Tell(new RequestTemperature(FloorQuery.TemperatureRequestCorrelactionId));
             }
         }
 
@@ -40,12 +35,21 @@ namespace TemperatureMonitor
         {
             switch (message)
             {
+                case RespondTemperature m when m.RequestId == TemperatureRequestCorrelactionId:
+                    var temperatureAvailable = new TemperatureAvailable(m.Temperature.Value);
+                    RecordTemperatureReading(Context.Sender, temperatureAvailable);
+                    break;
                default:
+                   Unhandled(message);
                    break;
             }
         }
-        
-        public static Props Props() => Akka.Actor.Props.Create(() => new FloorQuery());
+
+        private void RecordTemperatureReading(IActorRef sensor, ITemperatureQueryReading temperatureReading)
+        {
+            Context.Unwatch(sensor);
+            ActorRefToSensorId.Remove(sensor);
+        }
 
         public static Props Props(
             Dictionary<IActorRef, string> actorRefToSensorId,

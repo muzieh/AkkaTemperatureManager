@@ -15,7 +15,7 @@ namespace TemperatureMonitorTests
         public void RegisterSensor()
         {
             var probe = CreateTestProbe();
-            var floor = Sys.ActorOf(Floor.Prop("a"), "floor-a");
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             floor.Tell(new RequestSensorRegister(54, "a", "2"), probe.Ref);
             probe.ExpectMsg<RespondSensorRegistered>(m =>
             {
@@ -28,7 +28,7 @@ namespace TemperatureMonitorTests
         public void ReturnTheSameTemperatureSensorGivenThatRegisterTwiceTheSameSensor()
         {
             var probe = CreateTestProbe();
-            var floor = Sys.ActorOf(Floor.Prop("a"), "floor-a");
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             floor.Tell(new RequestSensorRegister(54, "a", "1"), probe.Ref);
             var firstSensor = probe.ExpectMsg<RespondSensorRegistered>().SensorRef;
             floor.Tell(new RequestSensorRegister(54, "a", "1"), probe.Ref);
@@ -43,7 +43,7 @@ namespace TemperatureMonitorTests
             var probe = CreateTestProbe();
             var eventStreamProbe = CreateTestProbe();
             Sys.EventStream.Subscribe(eventStreamProbe.Ref, typeof(Akka.Event.UnhandledMessage));
-            var floor = Sys.ActorOf(Floor.Prop("a"), "floor-a");
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             floor.Tell(new RequestSensorRegister(54, "b", "1"), probe.Ref);
             probe.ExpectNoMsg();
 
@@ -55,7 +55,7 @@ namespace TemperatureMonitorTests
         public void ReturnListOfSensorIds()
         {
             var probe = CreateTestProbe();
-            var floor = Sys.ActorOf(Floor.Prop("a"), "floor-a");
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             floor.Tell(new RequestSensorRegister(54, "a", "1"), probe);
             probe.ExpectMsg<RespondSensorRegistered>();
             floor.Tell(new RequestSensorRegister(54, "a", "4"), probe);
@@ -71,7 +71,7 @@ namespace TemperatureMonitorTests
         public void NotContainStoppedTemperatureSensor()
         {
             var probe = CreateTestProbe();
-            var floor = Sys.ActorOf(Floor.Prop("a"), "floor-a");
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             floor.Tell(new RequestSensorRegister(54, "a", "1"), probe);
             probe.ExpectMsg<RespondSensorRegistered>();
             var firstSensor = probe.LastSender;

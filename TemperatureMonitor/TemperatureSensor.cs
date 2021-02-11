@@ -41,7 +41,7 @@ namespace TemperatureMonitor
             }
         }
 
-        public static Props Prop(string floor, string sensorId) =>
+        public static Props Props(string floor, string sensorId) =>
             Akka.Actor.Props.Create(() => new TemperatureSensor(floor, sensorId));
     }
 }

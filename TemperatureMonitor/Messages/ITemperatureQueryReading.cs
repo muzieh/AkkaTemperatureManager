@@ -5,20 +5,20 @@
         
     }
 
-    public class TemperatureQueryReading : ITemperatureQueryReading
+    public class TemperatureAvailable : ITemperatureQueryReading
     {
         public decimal Temperature { get; }
 
-        public TemperatureQueryReading(decimal temperature)
+        public TemperatureAvailable(decimal temperature)
         {
             Temperature = temperature;
         }
     }
 
-    public class NoTemperatureQueryAvailable : ITemperatureQueryReading
+    public class NoTemperatureAvailable : ITemperatureQueryReading
     {
-        public static NoTemperatureQueryAvailable Instance { get; }= new NoTemperatureQueryAvailable();
-        private NoTemperatureQueryAvailable() { }
+        public static NoTemperatureAvailable Instance { get; }= new NoTemperatureAvailable();
+        private NoTemperatureAvailable() { }
     }
 
     public class SensorNotAvailable : ITemperatureQueryReading

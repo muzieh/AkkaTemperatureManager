@@ -14,7 +14,7 @@ namespace TemperatureMonitorTests
         public void ReturnTemperatureReadingWhenRequested()
         {
             var probe = CreateTestProbe();
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestMetadata(1), probe.Ref);
             var received = probe.ExpectMsg<ResponseMetadata>();
             Assert.Equal(1, received.RequestId);
@@ -26,7 +26,7 @@ namespace TemperatureMonitorTests
         public void StartWithNoTemperature()
         {
             var probe = CreateTestProbe();
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestTemperature(1), probe.Ref);
             var received = probe.ExpectMsg<RespondTemperature>();
             Assert.Null(received.Temperature);
@@ -37,7 +37,7 @@ namespace TemperatureMonitorTests
         public void ConfirmTemperatureUpdate()
         {
             var probe = CreateTestProbe();
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestUpdateTemperature(1, 12.4m), probe.Ref);
             probe.ExpectMsg<RespondTemperatureUpdated>(m =>
             {
@@ -49,7 +49,7 @@ namespace TemperatureMonitorTests
         public void RespondWithNewTemperatureAfterTemperatureUpdate()
         {
             var probe = CreateTestProbe();
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestUpdateTemperature(1, 12.4m));
             sensor.Tell(new RequestTemperature(2), probe.Ref);
             var response = probe.ExpectMsg<RespondTemperature>();
@@ -61,7 +61,7 @@ namespace TemperatureMonitorTests
         public void RegisterSensor()
         {
             var probe = CreateTestProbe();
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestSensorRegister(43, "a", "1"), probe.Ref);
 
             probe.ExpectMsg<RespondSensorRegistered>((m) =>
@@ -77,7 +77,7 @@ namespace TemperatureMonitorTests
             var probe = CreateTestProbe();
             var eventStreamProbe = CreateTestProbe();
             Sys.EventStream.Subscribe(eventStreamProbe, typeof(Akka.Event.UnhandledMessage));
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestSensorRegister(43, "b", "1"), probe.Ref);
             probe.ExpectNoMsg();
 
@@ -91,7 +91,7 @@ namespace TemperatureMonitorTests
             var probe = CreateTestProbe();
             var eventStreamProbe = CreateTestProbe();
             Sys.EventStream.Subscribe(eventStreamProbe, typeof(Akka.Event.UnhandledMessage));
-            var sensor = Sys.ActorOf(TemperatureSensor.Prop("a", "1"));
+            var sensor = Sys.ActorOf(TemperatureSensor.Props("a", "1"));
             sensor.Tell(new RequestSensorRegister(43, "a", "4"), probe.Ref);
             probe.ExpectNoMsg();
 

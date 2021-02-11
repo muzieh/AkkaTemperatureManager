@@ -25,7 +25,7 @@ namespace TemperatureMonitor
                     }
                     else
                     {
-                        var newFloor = Context.ActorOf(Floor.Prop(m.Floor), $"floor-{m.Floor}");
+                        var newFloor = Context.ActorOf(Floor.Props(m.Floor), $"floor-{m.Floor}");
                         floorIdToActorRefs.Add(m.Floor, newFloor);
                         Context.Watch(newFloor);
                         newFloor.Forward(m);
@@ -44,6 +44,6 @@ namespace TemperatureMonitor
             }
         }
 
-        public static Props Prop() => Akka.Actor.Props.Create(() => new FloorManager());
+        public static Props Props() => Akka.Actor.Props.Create(() => new FloorManager());
     }
 }

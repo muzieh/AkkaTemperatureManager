@@ -16,7 +16,7 @@ namespace TemperatureMonitorTests
         public void RegisterNewSensor()
         {
             var probe = CreateTestProbe();
-            var floorManager = Sys.ActorOf(FloorManager.Prop(), "floor-manager");
+            var floorManager = Sys.ActorOf(FloorManager.Props(), "floor-manager");
             floorManager.Tell(new RequestSensorRegister(54, "a", "2"), probe);
             probe.ExpectMsg<RespondSensorRegistered>();
         }
@@ -25,7 +25,7 @@ namespace TemperatureMonitorTests
         public void ReturnListOfFloorIds()
         {
             var probe = CreateTestProbe();
-            var floorManager = Sys.ActorOf(FloorManager.Prop(), "floor-manager");
+            var floorManager = Sys.ActorOf(FloorManager.Props(), "floor-manager");
             floorManager.Tell(new RequestSensorRegister(54, "a", "2"), probe);
             probe.ExpectMsg<RespondSensorRegistered>();
             floorManager.Tell(new RequestSensorRegister(55, "b", "5"), probe);
@@ -41,7 +41,7 @@ namespace TemperatureMonitorTests
         public void ReturnSingleFloorGivenMultipleSensorsAddedToTheSameFloor()
         {
             var probe = CreateTestProbe();
-            var floorManager = Sys.ActorOf(FloorManager.Prop(), "floor-manager");
+            var floorManager = Sys.ActorOf(FloorManager.Props(), "floor-manager");
             floorManager.Tell(new RequestSensorRegister(54, "a", "2"), probe);
             probe.ExpectMsg<RespondSensorRegistered>();
             floorManager.Tell(new RequestSensorRegister(55, "a", "5"), probe);
@@ -57,7 +57,7 @@ namespace TemperatureMonitorTests
         public async Task NotReturnStoppedFloorActor()
         {
             var probe = CreateTestProbe();
-            var floorManager = Sys.ActorOf(FloorManager.Prop(), "floor-manager");
+            var floorManager = Sys.ActorOf(FloorManager.Props(), "floor-manager");
             floorManager.Tell(new RequestSensorRegister(54, "a", "2"));
             floorManager.Tell(new RequestSensorRegister(55, "b", "5"));
             

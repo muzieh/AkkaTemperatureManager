@@ -28,7 +28,7 @@ namespace TemperatureMonitor
                     }
                     else
                     {
-                        var sensor = Context.ActorOf(TemperatureSensor.Prop(m.Floor, m.SensorId),$"temperature-sensor-{m.SensorId}" );
+                        var sensor = Context.ActorOf(TemperatureSensor.Props(m.Floor, m.SensorId),$"temperature-sensor-{m.SensorId}" );
                         sensorIdToActorRef.Add(m.SensorId, sensor);
                         Context.Watch(sensor);
                         sensor.Forward(m);
@@ -47,6 +47,6 @@ namespace TemperatureMonitor
             }
         }
 
-        public static Props Prop(string floor) => Akka.Actor.Props.Create(() => new Floor(floor));
+        public static Props Props(string floor) => Akka.Actor.Props.Create(() => new Floor(floor));
     }
 }
