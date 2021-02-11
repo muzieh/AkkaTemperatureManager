@@ -14,6 +14,7 @@ namespace TemperatureMonitorTests
     public class FloorQueryShould : TestKit
     {
         [Fact]
+        
         public void ReturnTemperatures()
         {
             var queryRequester = CreateTestProbe();
