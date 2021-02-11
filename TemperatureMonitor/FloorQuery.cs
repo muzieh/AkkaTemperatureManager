@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Akka.Actor;
 using TemperatureMonitor.Messages;
 
@@ -8,6 +10,9 @@ namespace TemperatureMonitor
     public class FloorQuery : UntypedActor
     {
         public Dictionary<IActorRef, string> ActorRefToSensorId { get; }
+
+        public Dictionary<string, ITemperatureQueryReading> Readings { get; } =
+            new Dictionary<string, ITemperatureQueryReading>();
         public int RequestId { get; }
         public IActorRef Requester { get; }
         public TimeSpan Timeout { get; }
@@ -36,8 +41,18 @@ namespace TemperatureMonitor
             switch (message)
             {
                 case RespondTemperature m when m.RequestId == TemperatureRequestCorrelactionId:
-                    var temperatureAvailable = new TemperatureAvailable(m.Temperature.Value);
-                    RecordTemperatureReading(Context.Sender, temperatureAvailable);
+                    if (m.Temperature.HasValue )
+                    {
+                        var temperatureAvailable = new TemperatureAvailable(m.Temperature.Value);
+                        RecordTemperatureReading(Context.Sender, temperatureAvailable);
+                    }
+                    else
+                    {
+                        RecordTemperatureReading(Context.Sender, NoTemperatureAvailable.Instance);
+                    }
+                    break;
+                case Terminated m:
+                    RecordTemperatureReading(Context.Sender, SensorNotAvailable.Instance);
                     break;
                default:
                    Unhandled(message);
@@ -47,8 +62,14 @@ namespace TemperatureMonitor
 
         private void RecordTemperatureReading(IActorRef sensor, ITemperatureQueryReading temperatureReading)
         {
+            var sensorId = ActorRefToSensorId[sensor];
             Context.Unwatch(sensor);
             ActorRefToSensorId.Remove(sensor);
+            Readings.Add(sensorId, temperatureReading);
+            if (ActorRefToSensorId.Count == 0)
+            {
+                Requester.Tell(new RespondFloorTemperatures(RequestId, Readings.ToImmutableDictionary()));
+            }
         }
 
         public static Props Props(
