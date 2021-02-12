@@ -32,4 +32,10 @@
         public static SensorTimedOut Instance { get; } = new SensorTimedOut();
         private SensorTimedOut() { }
     }
+
+    public sealed class TemperatureQueryCanceled
+    {
+        public static TemperatureQueryCanceled Instance { get; } = new TemperatureQueryCanceled();
+        private TemperatureQueryCanceled() { }
+    }
 }

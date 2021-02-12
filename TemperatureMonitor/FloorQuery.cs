@@ -9,6 +9,7 @@ namespace TemperatureMonitor
 {
     public class FloorQuery : UntypedActor
     {
+        private ICancelable _queryCancelationToken;
         public Dictionary<IActorRef, string> ActorRefToSensorId { get; }
 
         public Dictionary<string, ITemperatureQueryReading> Readings { get; } =
@@ -24,6 +25,8 @@ namespace TemperatureMonitor
             RequestId = requestId;
             Requester = requester;
             Timeout = timeout;
+            
+            _queryCancelationToken = Context.System.Scheduler.ScheduleTellOnceCancelable(timeout, Self, TemperatureQueryCanceled.Instance, Self);
         }
 
         protected override void PreStart()
@@ -34,6 +37,11 @@ namespace TemperatureMonitor
                 Context.Watch(sensorActor);
                 sensorActor.Tell(new RequestTemperature(FloorQuery.TemperatureRequestCorrelactionId));
             }
+        }
+
+        protected override void PostStop()
+        {
+            _queryCancelationToken.Cancel();
         }
 
         protected override void OnReceive(object message)
@@ -53,6 +61,14 @@ namespace TemperatureMonitor
                     break;
                 case Terminated m:
                     RecordTemperatureReading(Context.Sender, SensorNotAvailable.Instance);
+                    break;
+                case TemperatureQueryCanceled m:
+                    foreach (var sensorActor in ActorRefToSensorId.Keys)
+                    {
+                        Readings.Add(ActorRefToSensorId[sensorActor], SensorTimedOut.Instance);
+                    }
+                    Requester.Tell(new RespondFloorTemperatures(RequestId, Readings.ToImmutableDictionary()));
+                    Context.Stop(Self);
                     break;
                default:
                    Unhandled(message);

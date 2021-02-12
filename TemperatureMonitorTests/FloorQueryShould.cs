@@ -73,6 +73,7 @@ namespace TemperatureMonitorTests
 
         }
         
+        [Fact] 
         public void ReturnSensorNotAvailableIfSensorStopped()
         {
             var queryRequester = CreateTestProbe();
@@ -105,6 +106,51 @@ namespace TemperatureMonitorTests
                 m.TemperatureReadings["s1"].Should().BeAssignableTo<SensorNotAvailable>();
                 
             });
+
+        }
+        
+        [Fact] 
+        public void ReturnTimeoutResponseGivenSensorDontRespond()
+        {
+            var queryRequester = CreateTestProbe();
+            var temperatureSensor1 = CreateTestProbe();
+            var temperatureSensor2 = CreateTestProbe();
+
+            var floorQuery = Sys.ActorOf(FloorQuery.Props(
+                actorRefToSensorId: new Dictionary<IActorRef, string>
+                {
+                    [temperatureSensor1.Ref] = "s1",
+                    [temperatureSensor2.Ref] = "s2",
+                },
+                requestId: 12,
+                requester: queryRequester.Ref,
+                timeout: TimeSpan.FromSeconds(1)
+            ), "floor-query");
+
+            temperatureSensor1.ExpectMsg<RequestTemperature>((m, sender) =>
+            {
+                m.RequestId.Should().Be(FloorQuery.TemperatureRequestCorrelactionId);
+                sender.Should().Be(floorQuery);
+            });
+            
+            temperatureSensor2.ExpectMsg<RequestTemperature>((m, sender) =>
+            {
+                m.RequestId.Should().Be(FloorQuery.TemperatureRequestCorrelactionId);
+                sender.Should().Be(floorQuery);
+            });
+            
+            floorQuery.Tell(new RespondTemperature(FloorQuery.TemperatureRequestCorrelactionId, 12.3m), temperatureSensor1.Ref);            
+
+            queryRequester.ExpectMsg<RespondFloorTemperatures>((m) =>
+            {
+                m.RequestId.Should().Be(12);
+                m.TemperatureReadings.Count.Should().Be(2);
+                
+                m.TemperatureReadings["s1"].Should().BeAssignableTo<TemperatureAvailable>();
+                m.TemperatureReadings["s1"].As<TemperatureAvailable>().Temperature.Should().Be(12.3m);
+                m.TemperatureReadings["s2"].Should().BeAssignableTo<SensorTimedOut>();
+
+            }, TimeSpan.FromSeconds(3));
 
         }
         
