@@ -85,6 +85,7 @@ namespace TemperatureMonitor
             if (ActorRefToSensorId.Count == 0)
             {
                 Requester.Tell(new RespondFloorTemperatures(RequestId, Readings.ToImmutableDictionary()));
+                Context.Stop(Self);
             }
         }
 
