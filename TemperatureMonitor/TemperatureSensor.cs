@@ -1,4 +1,5 @@
 ﻿using Akka.Actor;
+using Akka.Event;
 using TemperatureMonitor.Messages;
 
 namespace TemperatureMonitor
@@ -9,7 +10,9 @@ namespace TemperatureMonitor
         public string SensorId { get; }
 
         private decimal? _temperature;
-
+        
+        private readonly ILoggingAdapter _log = Logging.GetLogger(Context);
+        
         public TemperatureSensor(string floor, string sensorId)
         {
             Floor = floor;
@@ -28,6 +31,7 @@ namespace TemperatureMonitor
                    break;
                case RequestUpdateTemperature m:
                    _temperature = m.Temperature;
+                    //_log.Info($"request temperature update {Floor}-{SensorId} {m.Temperature}"); 
                    Sender.Tell(new RespondTemperatureUpdated(m.RequestId));
                    break;
                case RequestSensorRegister m

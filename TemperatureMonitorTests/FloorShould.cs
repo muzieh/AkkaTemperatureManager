@@ -89,6 +89,15 @@ namespace TemperatureMonitorTests
                 .NotBeEmpty()
                 .And.HaveCount(1)
                 .And.Contain(new string[] { "4"});
-        } 
+        }
+
+        [Fact]
+        public void CreateFloorQuery()
+        {
+            var probe = CreateTestProbe();
+
+            var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
+            
+        }
     }
 }
