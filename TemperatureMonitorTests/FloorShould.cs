@@ -98,6 +98,36 @@ namespace TemperatureMonitorTests
 
             var floor = Sys.ActorOf(Floor.Props("a"), "floor-a");
             
+            floor.Tell(new RequestSensorRegister(12, "a", "1"), probe);
+            var temp1 = probe.ExpectMsg<RespondSensorRegistered>().SensorRef;
+            
+            floor.Tell(new RequestSensorRegister(42, "a", "2"), probe);
+            var temp2 = probe.ExpectMsg<RespondSensorRegistered>().SensorRef;
+            
+            floor.Tell(new RequestSensorRegister(2, "a", "4"), probe);
+            var temp3 = probe.ExpectMsg<RespondSensorRegistered>().SensorRef;
+            
+            temp1.Should().NotBeNull();
+            temp2.Should().NotBeNull();
+            temp3.Should().NotBeNull();
+
+            temp1.Tell(new RequestUpdateTemperature(32, 12.55m), probe);
+            probe.ExpectMsg<RespondTemperatureUpdated>((m) =>
+            {
+                m.RequestId.Should().Be(32);
+            });
+            temp2.Tell(new RequestUpdateTemperature(12, 16.15m), probe);
+            probe.ExpectMsg<RespondTemperatureUpdated>((m) =>
+            {
+                m.RequestId.Should().Be(12);
+            });
+            
+            floor.Tell(new RequestFloorTemperatures(43), probe);
+            probe.ExpectMsg<RespondFloorTemperatures>((m, sender) =>
+            {
+                m.RequestId.Should().Be(43);
+                m.TemperatureReadings.Should().HaveCount(3);
+            });
         }
     }
 }

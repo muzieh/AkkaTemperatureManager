@@ -24,7 +24,7 @@ namespace TemperatureMonitorHost
 
         public void StartQuerying()
         {
-            _timer = new Timer(SimulateQueryFloor, null, 0, _random.Next(3000, 3000));
+            _timer = new Timer(SimulateQueryFloor, null, 0, _random.Next(3000, 30000));
         }
 
         private async void SimulateQueryFloor(object state)

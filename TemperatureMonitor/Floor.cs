@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -36,6 +37,14 @@ namespace TemperatureMonitor
                     break;
                 case RequestSensorIdsList m when m.FloorId == FloorId:
                     Sender.Tell(new RespondSensorIdsList(m.RequestId, sensorIdToActorRef.Keys.ToImmutableHashSet()));
+                    break;
+                case RequestFloorTemperatures m:
+                    var actorRefToSensorId = new Dictionary<IActorRef, string>();
+                    foreach (var sensorActorKeyValue in sensorIdToActorRef)
+                    {
+                        actorRefToSensorId[sensorActorKeyValue.Value] = sensorActorKeyValue.Key;
+                    }
+                    Context.ActorOf(FloorQuery.Props(actorRefToSensorId, m.RequestId, Sender, TimeSpan.FromMilliseconds(500)));
                     break;
                 case Terminated m:
                     var sensorId = sensorIdToActorRef.First(kv => kv.Value == m.ActorRef).Key;

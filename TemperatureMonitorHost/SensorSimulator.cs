@@ -20,7 +20,7 @@ namespace TemperatureMonitorHost
             _floorId = floorId;
             _sensorId = sensorId;
             _floorManager = floorManager;
-            _random = new Random(int.Parse(sensorId));
+            _random = new Random(Environment.TickCount + int.Parse(sensorId));
         }
 
         public async Task Connect()
@@ -32,12 +32,12 @@ namespace TemperatureMonitorHost
 
         public void StartSendingSimulatedReadings()
         {
-            _timer = new Timer(SimulateUpdateTemperature, null, 0, _random.Next(5000, 9000));
+            _timer = new Timer(SimulateUpdateTemperature, null, 0, _random.Next(500, 2000));
         }
 
         private void SimulateUpdateTemperature(object state)
         {
-            _temperatureSensor.Tell(new RequestUpdateTemperature(0, (decimal)_random.NextDouble() * 100.0m));
+            _temperatureSensor.Ask(new RequestUpdateTemperature(0, (decimal)_random.NextDouble() * 100.0m));
         }
     }
 }
